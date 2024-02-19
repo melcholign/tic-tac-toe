@@ -55,3 +55,18 @@ function Cell() {
 
     return { isEmpty, mark, getValue, };
 }
+
+function Player(playerName, playerMark) {
+    const name = playerName;
+    const mark = playerMark;
+
+    function getName() {
+        return name;
+    }
+
+    function getMark() {
+        return mark;
+    }
+
+    return { getName, getMark };
+}
