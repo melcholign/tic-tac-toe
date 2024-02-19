@@ -1,4 +1,4 @@
-const gameBoard = (function () {
+const Gameboard = (function () {
 
     const board = [];
     const cellsPerSide = 3;
@@ -8,15 +8,18 @@ const gameBoard = (function () {
     for (let row = 0; row < cellsPerSide; ++row) {
         board[row] = [];
         for (let column = 0; column < cellsPerSide; ++column) {
-            // push a cell into the row
+            board[row].push(Cell());
         }
     }
 
     function markCell(playerMark, cellRow, cellColumn) {
-        // check if the cell located by the row and columns values is already marked.
-        // early return if true;
+        const cell = board[cellRow][cellColumn];
 
-        // mark cell
+        if (!cell.isEmpty()) {
+            return;
+        }
+
+        cell.mark(playerMark);
         --unmarkedCount;
     }
 
@@ -30,6 +33,25 @@ const gameBoard = (function () {
         return board;
     }
 
-    return { markCell, getUnmarkedCount, getBoard };
+    return { markCell, getUnmarkedCount, getBoard, };
 
 })();
+
+function Cell() {
+    const EMPTY_CELL = ' ';
+    let value = EMPTY_CELL;
+
+    function isEmpty() {
+        return value === EMPTY_CELL;
+    }
+
+    function mark(playerMark) {
+        value = playerMark;
+    }
+
+    function getValue() {
+        return value;
+    }
+
+    return { isEmpty, mark, getValue, };
+}
