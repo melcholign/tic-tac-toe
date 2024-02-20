@@ -60,6 +60,10 @@ body {
     display: block;
     width: 100%;
     height: 100%;
-    background-color: transparent;
     border: none;
+    font-size: 2rem;
+}
+
+.cell button:not(:disabled) {
+    background-color: transparent;
 }

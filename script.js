@@ -5,24 +5,20 @@ const Gameboard = (function () {
     let unmarkedCount = cellsPerSide ** 2;
 
     // create a 2d array of cells
-    for (let row = 0; row < cellsPerSide; ++row) {
-        board[row] = [];
-        for (let column = 0; column < cellsPerSide; ++column) {
-            board[row].push(Cell());
+    function resetBoard() {
+        for (let row = 0; row < cellsPerSide; ++row) {
+            board[row] = [];
+            for (let column = 0; column < cellsPerSide; ++column) {
+                board[row].push(Cell());
+            }
         }
     }
 
     function markCell(playerMark, cellRow, cellColumn) {
         const cell = board[cellRow][cellColumn];
 
-        if (!cell.isEmpty()) {
-            return false;
-        }
-
         cell.mark(playerMark);
         --unmarkedCount;
-
-        return true;
     }
 
     // this will be useful in the determination of a tie
@@ -39,7 +35,9 @@ const Gameboard = (function () {
         board.forEach(row => console.log(row.map(cell => cell.getValue())));
     }
 
-    return { markCell, getUnmarkedCount, getBoard, printBoard };
+    resetBoard();
+
+    return { markCell, getUnmarkedCount, getBoard, printBoard, resetBoard };
 
 })();
 
@@ -91,53 +89,34 @@ const GameController = (function (
         activePlayer = activePlayer === playerOne ? playerTwo : playerOne;
     }
 
-    function printNewRound() {
-        console.log(`Round ${round}`);
-        console.log(`${activePlayer.getName()}'s turn`);
+    function getRoundInfo() {
+        return { round, playerName: activePlayer.getName() };
     }
 
-    function playRound() {
+    function playRound(cellRow, cellCol) {
+        const cell = board[cellRow][cellCol];
+        let roundOutcome;
 
-        let validationMsg;
-
-        const validatePromptInput = promptInput => {
-            if (promptInput === null || promptInput.trim() === '') {
-                return 'Cancelled';
-            }
-
-            const num = +promptInput;
-            if (isNaN(num) || !Number.isInteger(+num)) {
-                return 'Invalid input type';
-            }
-            return (num <= 0 || board.length < num) ? 'Input out of range' : '';
+        if (!cell.isEmpty()) {
+            return null;
         }
 
-        printNewRound();
-        Gameboard.printBoard();
+        Gameboard.markCell(activePlayer.getMark(), cellRow, cellCol);
 
-        const cellRow = prompt('Enter cell row number: ');
-        validationMsg = validatePromptInput(cellRow);
-        if (validationMsg) {
-            console.log(validationMsg);
-            return;
+        if (isWin()) {
+            roundOutcome = `${activePlayer.getName()} has won`;
+            round = 0;
         }
 
-        const cellColumn = prompt('Enter cell column number: ');
-        validationMsg = validatePromptInput(cellColumn);
-        if (validationMsg) {
-            console.log(validationMsg);
-            return;
+        if (isTie()) {
+            roundOutcome = `The game is a tie`;
+            round = 0;
         }
 
-        if (!Gameboard.markCell(activePlayer.getMark(), cellRow - 1, cellColumn - 1)) {
-            console.log('Cell is already marked');
-        } else if (isTie()) {
-            console.log('The game is a tie');
-        } else if (isWin()) {
-            console.log(`${activePlayer.getName()} has won`);
-        } else {
-            ++round;
-        }
+        ++round;
+        switchActivePlayer();
+
+        return roundOutcome;
     }
 
     function isTie() {
@@ -170,6 +149,87 @@ const GameController = (function (
             || isCongruentGroup(cellCoord => board[cellCoord][cellsPerSide - cellCoord - 1]);
     }
 
-    return { playRound };
+    return { getRoundInfo, playRound };
+
+})();
+
+const displayController = (function () {
+    const board = Gameboard.getBoard();
+    const startButton = document.querySelector('#start-button');
+    const cellButtons = document.querySelectorAll('.cell button');
+    const gameEventDisplay = document.querySelector('#event-display');
+
+    // starts game
+    startButton.addEventListener('click', () => {
+        clearEventDisplay();
+        startButton.disabled = true;
+        clearCellMarks();
+        toggleCellButtons();
+        setRoundDisplay();
+    });
+
+    cellButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (!button.disabled) {
+                console.log('click')
+                const value = button.value - 1;
+                const cellRow = Math.floor(value / 3);
+                const cellCol = value % 3;
+                const roundOutcome = GameController.playRound(cellRow, cellCol);
+
+                if (roundOutcome === null) {
+                    return;
+                }
+
+                button.textContent = board[cellRow][cellCol].getValue();
+
+                if (roundOutcome !== undefined) {
+                    clearEventDisplay();
+                    Gameboard.resetBoard();
+
+                    const gameOutcome = document.createElement('h1');
+                    gameOutcome.textContent = roundOutcome;
+                    gameEventDisplay.appendChild(gameOutcome);
+
+                    toggleCellButtons();
+                    startButton.disabled = false;
+
+                } else {
+                    setRoundDisplay();
+                }
+            }
+        });
+    });
+
+    function setRoundDisplay() {
+        const roundInfo = GameController.getRoundInfo();
+
+        const roundNumber = gameEventDisplay.querySelector('.round-number') || addNewDisplayElement('h3', 'round-number');
+        roundNumber.textContent = `Round ${roundInfo.round}`;
+
+        const playerTurn = gameEventDisplay.querySelector('.player-turn') || addNewDisplayElement('h2', 'player-turn');
+        playerTurn.textContent = `${roundInfo.playerName}'s turn`;
+    }
+
+    function addNewDisplayElement(elementType, className) {
+        const element = document.createElement(elementType);
+        element.className = className;
+        gameEventDisplay.appendChild(element);
+        return element;
+    }
+
+    function toggleCellButtons() {
+        cellButtons.forEach(button => button.disabled = !button.disabled);
+    }
+
+    function clearCellMarks() {
+        cellButtons.forEach(button => button.textContent = '');
+    }
+
+    function clearEventDisplay() {
+        while (gameEventDisplay.firstChild) {
+            gameEventDisplay.removeChild(gameEventDisplay.lastChild);
+        }
+    }
 
 })();
