@@ -23,7 +23,7 @@ function Gameboard(boardLength = 3) {
         board.forEach(row => console.log(row.map(cell => cell.getMark() || '_')));
     }
 
-    return { getCellMark, markCell, printBoard};
+    return { getCellMark, markCell, printBoard };
 }
 
 function Cell() {
@@ -45,4 +45,19 @@ function Cell() {
     }
 
     return { isUnmarked, setMark, getMark, };
+}
+
+function Player(playerName, playerMark) {
+    const name = playerName;
+    const mark = playerMark;
+
+    function getName() {
+        return name;
+    }
+
+    function getMark() {
+        return playerMark;
+    }
+
+    return { getName, getMark };
 }
