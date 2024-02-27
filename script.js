@@ -11,12 +11,33 @@ function Gameboard(boardLength) {
     }
 
     function getCellMark(cellRow, cellCol) {
-        
+
     }
 
     function markCell(mark, cellRow, cellCol) {
 
     }
 
-    return { getCellMark, markCell };
+    return { getCellMark, markCell, };
+}
+
+function Cell() {
+    const cell = {};
+
+    function isUnmarked() {
+        return 'mark' in cell;
+    }
+
+    // cell value is immutable after setting it once
+    function setMark(mark) {
+        if (isUnmarked()) {
+            cell.mark = mark;
+        }
+    }
+
+    function getMark() {
+        return cell.mark || null;
+    }
+
+    return { isUnmarked, setMark, getMark, };
 }
