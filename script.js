@@ -1,24 +1,29 @@
-function Gameboard(boardLength) {
-
-    let board = [];
+function Gameboard(boardLength = 3) {
 
     // builds up the board
+    let board = [];
     for (let row = 0; row < boardLength; ++row) {
         board[row] = [];
         for (let col = 0; col < boardLength; ++col) {
-            board[row][col] = null;     // null is a placeholder for a cell object 
+            board[row][col] = Cell();
         }
     }
 
     function getCellMark(cellRow, cellCol) {
-
+        return board[cellRow][cellCol];
     }
 
     function markCell(mark, cellRow, cellCol) {
-
+        if (cellRow <= boardLength && cellCol <= boardLength) {
+            board[cellRow][cellCol].setMark(mark);
+        }
     }
 
-    return { getCellMark, markCell, };
+    function printBoard() {
+        board.forEach(row => console.log(row.map(cell => cell.getMark() || '_')));
+    }
+
+    return { getCellMark, markCell, printBoard};
 }
 
 function Cell() {
