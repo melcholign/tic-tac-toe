@@ -10,7 +10,7 @@ function Gameboard(boardLength = 3) {
     }
 
     function getCellMark(cellRow, cellCol) {
-        return board[cellRow][cellCol];
+        return board[cellRow][cellCol].getMark();
     }
 
     function markCell(mark, cellRow, cellCol) {
@@ -29,13 +29,13 @@ function Gameboard(boardLength = 3) {
 function Cell() {
     const cell = {};
 
-    function isUnmarked() {
+    function isMarked() {
         return 'mark' in cell;
     }
 
     // cell value is immutable after setting it once
     function setMark(mark) {
-        if (isUnmarked()) {
+        if (!isMarked()) {
             cell.mark = mark;
         }
     }
@@ -44,7 +44,7 @@ function Cell() {
         return cell.mark || null;
     }
 
-    return { isUnmarked, setMark, getMark, };
+    return { isMarked, setMark, getMark, };
 }
 
 function Player(playerName, playerMark) {
@@ -56,8 +56,39 @@ function Player(playerName, playerMark) {
     }
 
     function getMark() {
-        return playerMark;
+        return mark;
     }
 
     return { getName, getMark };
+}
+
+function GameController(
+    playerOne = Player('P1', 'X'),
+    playerTwo = Player('P2', 'O')
+) {
+
+    const board = Gameboard();
+    let activePlayer = playerOne;
+    let roundNumber = 1;
+
+    function switchActivePlayer() {
+        activePlayer = activePlayer === playerOne ? playerTwo : playerOne;
+    }
+
+    function playRound(cellRow, cellCol) {
+        if (board.getCellMark(cellRow, cellCol) !== null) {
+            return;
+        }
+
+        board.markCell(activePlayer.getMark(), cellRow, cellCol);
+
+        switchActivePlayer();
+        ++roundNumber;
+    }
+
+    function getBoard() {
+        return board;
+    }
+
+    return { playRound, getBoard };
 }
